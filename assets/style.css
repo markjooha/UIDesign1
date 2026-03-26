@@ -1,14 +1,42 @@
+
+@font-face {
+	font-family: "Iyagi";
+	src : url("DOSIyagiBoldface.ttf")
+}
+
+@font-face {
+	font-family: "DM";
+	src : url("DOSMyungjo.ttf")
+}
+
 * {
 	margin:  0px;
 	padding:  0px;
 	box-sizing: border-box;
+	font-family: DM;
+	background-color:#EEEEEE;
 }
 
 /* adjusting fonts */
 
 body {
-	font-family: -apple-system, BlinkMacSystemFont, helvetica, arial, sans-serif;
 	transition: background 500ms ease;
+	/*color: red;
+    Font-family: arial;*/
+}
+
+h1 {
+	font-size: 80px;
+}
+
+.title {  }
+
+.bottom {
+	padding-left: 20px;
+}
+
+#ascii {
+	font-family: Iyagi;
 }
 
 p, li {
