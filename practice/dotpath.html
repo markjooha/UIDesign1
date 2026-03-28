@@ -1,0 +1,155 @@
+
+<canvas id="c" style="display:block;width:100%;border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary);background:var(--color-background-primary);"></canvas>
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const W =600, H = 800;
+const dpr = window.devicePixelRatio || 1;
+canvas.width = W * dpr;
+canvas.height = H * dpr;
+canvas.style.width = W + 'px';
+canvas.style.height = H + 'px';
+ctx.scale(dpr, dpr);
+
+let orderedDots = [];
+let visibleCount = 0;
+let drawIdx = 0;
+let phase = 'dots';
+let timer = null;
+
+const DOT_INTERVAL = 100;
+const LINE_INTERVAL = 55;
+const PAUSE = 1000;
+const R = 3.5;
+
+function isDark() {
+  return window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
+
+function drawAll() {
+  ctx.clearRect(0, 0, W, H);
+  const dotColor = isDark() ? '#ddd' : '#111';
+  const labelColor = isDark() ? '#999' : '#666';
+
+  if (phase === 'lines' || phase === 'done') {
+    if (drawIdx > 0) {
+      ctx.beginPath();
+      ctx.moveTo(orderedDots[0].x, orderedDots[0].y);
+      for (let i = 1; i <= drawIdx; i++) {
+        ctx.lineTo(orderedDots[i].x, orderedDots[i].y);
+      }
+      ctx.strokeStyle = '#c0392b';
+      ctx.lineWidth = 1.8;
+      ctx.lineJoin = 'round';
+      ctx.lineCap = 'round';
+      ctx.stroke();
+    }
+  }
+
+  for (let i = 0; i < visibleCount; i++) {
+    const d = orderedDots[i];
+    ctx.beginPath();
+    ctx.arc(d.x, d.y, R, 0, Math.PI * 2);
+    ctx.fillStyle = dotColor;
+    ctx.fill();
+
+    ctx.font = '14px sans-serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = labelColor;
+    ctx.fillText(i + 1, d.x + R + 3, d.y - R - 2);
+  }
+}
+
+function dist(a, b) {
+  return Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
+}
+
+function nearestNeighbor(pts) {
+  const n = pts.length;
+  const visited = new Array(n).fill(false);
+  const order = [0];
+  visited[0] = true;
+  for (let s = 1; s < n; s++) {
+    const last = order[order.length - 1];
+    let best = -1, bestD = Infinity;
+    for (let j = 0; j < n; j++) {
+      if (!visited[j]) {
+        const dd = dist(pts[last], pts[j]);
+        if (dd < bestD) { bestD = dd; best = j; }
+      }
+    }
+    visited[best] = true;
+    order.push(best);
+  }
+  return order;
+}
+
+function twoOpt(order, pts) {
+  const n = order.length;
+  let best = order.slice();
+  let improved = true;
+  while (improved) {
+    improved = false;
+    for (let i = 0; i < n - 2; i++) {
+      for (let j = i + 2; j < n - 1; j++) {
+        const before = dist(pts[best[i]], pts[best[i+1]]) + dist(pts[best[j]], pts[best[j+1]]);
+        const after  = dist(pts[best[i]], pts[best[j]])   + dist(pts[best[i+1]], pts[best[j+1]]);
+        if (after < before - 1e-10) {
+          let l = i + 1, r = j;
+          while (l < r) { [best[l], best[r]] = [best[r], best[l]]; l++; r--; }
+          improved = true;
+        }
+      }
+    }
+  }
+  return best;
+}
+
+function generateOrderedDots() {
+  const count = 10 + Math.floor(Math.random() * 3);
+  const margin = 60;
+  const raw = [];
+  for (let i = 0; i < count; i++) {
+    raw.push({
+      x: margin + Math.random() * (W - margin * 2),
+      y: margin + Math.random() * (H - margin * 2)
+    });
+  }
+  const path = twoOpt(nearestNeighbor(raw), raw);
+  return path.map(i => raw[i]);
+}
+
+function startCycle() {
+  orderedDots = generateOrderedDots();
+  visibleCount = 0;
+  drawIdx = 0;
+  phase = 'dots';
+
+  timer = setInterval(() => {
+    if (phase !== 'dots') return;
+    visibleCount++;
+    drawAll();
+    if (visibleCount >= orderedDots.length) {
+      phase = 'pause';
+      clearInterval(timer);
+      setTimeout(() => {
+        drawIdx = 0;
+        phase = 'lines';
+        timer = setInterval(() => {
+          if (drawIdx < orderedDots.length - 1) {
+            drawIdx++;
+            drawAll();
+          } else {
+            phase = 'done';
+            clearInterval(timer);
+            setTimeout(startCycle, PAUSE);
+          }
+        }, LINE_INTERVAL);
+      }, 300);
+    }
+  }, DOT_INTERVAL);
+}
+
+startCycle();
+</script>
