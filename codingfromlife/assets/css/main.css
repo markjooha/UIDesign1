@@ -28,6 +28,7 @@ body {
 	position: absolute;
 	top: 0;
 	left: 0;
+	z-index: 1;
 }
 
 #wall {
@@ -37,6 +38,7 @@ body {
 	position: absolute;
 	top: 200px;
 	left: 0;
+	z-index: 1;
 }
 
 #table {
@@ -46,6 +48,7 @@ body {
 	position: absolute;
 	top: 261px;
 	left: 0;
+	z-index: 1;
 }
 
 /* -- grapefruit honey black tea -- */
