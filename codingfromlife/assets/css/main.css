@@ -1,12 +1,13 @@
 body {
 	background: #cccccc;
+	margin: 0;
 }
 
 #align {
 	display: flex;
-  align-items: center;
-  justify-content: center;	
-  height: 100vh;
+	align-items: center;
+	justify-content: center;
+	height: 100vh;
 }
 
 #stage {
@@ -15,79 +16,227 @@ body {
 	margin: auto;
 	background: white;
 	position: relative;
+	overflow: hidden;
 }
 
-#triangle {
-	width: 0;
-	height: 0;
-	border-left: 75px solid transparent;
-	border-right: 75px solid transparent;
-	border-bottom: 150px solid yellow;
+/* -- background -- */
+
+#sky {
+	width: 900px;
+	height: 200px;
+	background: #a4cec7;
 	position: absolute;
-	top: 203px;
-	left: 60px;
+	top: 0;
+	left: 0;
 }
 
-#square {
-	width: 150px;
+#wall {
+	width: 900px;
+	height: 61px;
+	background: #889290;
+	position: absolute;
+	top: 200px;
+	left: 0;
+}
+
+#table {
+	width: 900px;
+	height: 295px;
+	background: #9b753d;
+	position: absolute;
+	top: 261px;
+	left: 0;
+}
+
+/* -- grapefruit honey black tea -- */
+
+#ghbt-straw {
+	width: 14px;
+	height: 135px;
+	background: #005c31;
+	position: absolute;
+	top: 96px;
+	left: 177px;
+	transform: rotate(8deg);
+	z-index: 7;
+}
+
+#ghbt-1 {
+	width: 204px;
+	height: 240px;
+	background: #ddefec;
+	clip-path: polygon(0 0, 100% 0, 76% 100%, 24% 100%);
+	position: absolute;
+	top: 213px;
+	left: 39px;
+	z-index: 3;
+}
+
+#ghbt-2 {
+	width: 204px;
+	height: 65px;
+	background: #ddefec;
+	border-radius: 50%;
+	position: absolute;
+	top: 181px;
+	left: 39px;
+	z-index: 4;
+}
+
+#ghbt-3 {
+	width: 106px;
+	height: 12px;
+	background: #ddefec;
+	border-radius: 50%;
+	position: absolute;
+	top: 447px;
+	left: 88px;
+	z-index: 5;
+}
+
+#ghbt-inner-1 {
+	width: 163px;
+	height: 192px;
+	background: #f5b333;
+	clip-path: polygon(0 0, 100% 0, 76% 100%, 24% 100%);
+	position: absolute;
+	top: 240px;
+	left: 59px;
+	z-index: 6;
+}
+
+#ghbt-inner-2 {
+	width: 163px;
+	height: 52px;
+	background: #f5b333;
+	border-radius: 50%;
+	position: absolute;
+	top: 214px;
+	left: 59px;
+	z-index: 7;
+}
+
+#ghbt-inner-3 {
+	width: 85px;
+	height: 10px;
+	background: #f5b333;
+	border-radius: 50%;
+	position: absolute;
+	top: 428px;
+	left: 98px;
+	z-index: 8;
+}
+
+/* -- book -- */
+
+#book-left {
+	width: 293px;
+	height: 40px;
+	background: #6a716f;
+	position: absolute;
+	top: 493px;
+	left: 217px;
+	z-index: 4;
+}
+
+#book-back {
+	width: 450px;
+	height: 213px;
+	background: #9fa9a6;
+	clip-path: polygon(35% 0, 91% 0, 64% 100%, 0 100%);
+	position: absolute;
+	top: 281px;
+	left: 217px;
+	z-index: 5;
+}
+
+#book-front {
+	width: 440px;
+	height: 210px;
+	background: #bdc5c3;
+	clip-path: polygon(34% 0, 87% 0, 60% 100%, 0 100%);
+	position: absolute;
+	top: 281px;
+	left: 244px;
+	z-index: 6;
+}
+
+#book-side {
+	width: 118px;
+	height: 253px;
+	background: #6a716f;
+	clip-path: polygon(100% 0, 100% 17%, 0 100%, 0 57%);
+	position: absolute;
+	top: 281px;
+	left: 510px;
+	z-index: 4;
+}
+
+#book-main {
+	width: 380px;
 	height: 150px;
-	background: red;
-	top: 203px;
-	left: 270px;
+	background: #e5e5e5;
+	clip-path: polygon(28% 0, 70% 0, 46% 100%, 0 100%);
 	position: absolute;
-
-	/* uncomment to add keyframe animation */
-	/* animation: spin 2s infinite; */
-
+	top: 305px;
+	left: 310px;
+	z-index: 8;
 }
 
-#circle {
-	width: 150px;
-	height: 150px;
-	background: blue;
-	border-radius: 150px;
-	top: 203px;
-	left: 480px;
+#book-base {
+	width: 293px;
+	height: 40px;
+	background: #6a716f;
 	position: absolute;
+	top: 493px;
+	left: 217px;
+	z-index: 9;
 }
 
-#clip {
-	width: 150px;
-	height: 150px;
-	background: green;
-	clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
-	top: 203px;
-	left: 690px;
+/* -- lipbalm -- */
+
+#lipbalm {
+	width: 172px;
+	height: 39px;
+	background: #17469c;
+	border-radius: 10px;
 	position: absolute;
-
-	/* uncomment for css transitions */
-	/* transition: all 400ms ease; */
+	top: 334px;
+	left: 677px;
+	transform: rotate(13.5deg);
+	z-index: 12;
 }
 
-/* animations */
+/* -- airpods -- */
 
-/*
-#clip:hover {
-	transform: rotate(1200deg);
+#airpods-body {
+	width: 127px;
+	height: 108px;
+	background: #dddddd;
+	border-radius: 36px;
+	position: absolute;
+	top: 385px;
+	left: 607px;
+	z-index: 10;
 }
 
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+#airpods-line {
+	width: 127px;
+	height: 6px;
+	background: #a0a0a0;
+	position: absolute;
+	top: 422px;
+	left: 607px;
+	z-index: 11;
 }
 
-
-@keyframes move {
-  from {
-    transform: translateX(0px);
-  }
-  to {
-    transform: translateX(100px);
-  }
+#airpods-midline {
+	width: 56px;
+	height: 11px;
+	background: #c4c5c6;
+	border-radius: 8px;
+	position: absolute;
+	top: 419px;
+	left: 643px;
+	z-index: 12;
 }
-
-*/
