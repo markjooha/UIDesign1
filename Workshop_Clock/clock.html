@@ -37,6 +37,7 @@
     const WORDS_PER_LINE = 6
     const TOTAL_HOURS = 24
     const MINUTES_PER_HOUR = 60
+    const EXPECTED_TEXT_COUNT = 60
     const HOURS_PER_QUARTER = 6
     const SECOND_START_LEFT = 7.25
     const SECOND_END_LEFT = 84.75
@@ -126,9 +127,7 @@
 
     function textForMinute(date, hour, minute) {
       const seed = seedFromTime(date, hour)
-      const shuffled = shuffle(texts, seed)
-      const repeated = shuffled.slice(0, MINUTES_PER_HOUR - texts.length)
-      const hourTexts = shuffle(shuffled.concat(repeated), seed + 97)
+      const hourTexts = shuffle(texts, seed)
 
       return hourTexts[minute]
     }
@@ -220,7 +219,8 @@
       makeStorySlots()
 
       try {
-        const response = await fetch("./titled_texts.txt")
+        const textUrl = new URL("titled_texts.txt", window.location.href)
+        const response = await fetch(textUrl)
 
         if (!response.ok) {
           throw new Error("텍스트 파일을 찾을 수 없습니다.")
@@ -228,8 +228,8 @@
 
         texts = parseTexts(await response.text())
 
-        if (texts.length !== 58) {
-          throw new Error("58개의 글이 필요하지만 " + texts.length + "개를 찾았습니다.")
+        if (texts.length !== EXPECTED_TEXT_COUNT) {
+          throw new Error(EXPECTED_TEXT_COUNT + "개의 글이 필요하지만 " + texts.length + "개를 찾았습니다.")
         }
 
         stage.classList.remove("is-loading")
@@ -238,7 +238,7 @@
       } catch (error) {
         stage.classList.remove("is-loading")
         stage.classList.add("has-error")
-        loadState.textContent = "titled_texts.txt를 불러오지 못했습니다. 로컬 서버에서 clock.html을 열어주세요."
+        loadState.textContent = "titled_texts.txt를 불러오지 못했습니다. clock.html과 같은 폴더에 titled_texts.txt가 함께 있는지 확인해주세요."
       }
     }
 
