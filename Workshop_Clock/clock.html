@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>시계</title>
+  <link rel="stylesheet" href="./clock.css">
+</head>
+<body>
+  <div class="clock-stage is-loading" id="clockStage">
+    <div class="hour-number" id="hourNumber">0</div>
+    <div class="hour-bars" id="hourBars" aria-hidden="true"></div>
+    <div class="minute-number" id="minuteNumber">: 0 :</div>
+    <div class="story-title" id="storyTitle"></div>
+    <div class="story-body" id="storyBody"></div>
+    <div class="second-number" id="secondNumber">::1</div>
+    <div class="load-state" id="loadState">titled_texts.txt를 불러오는 중입니다.</div>
+  </div>
+
+  <script>
+    const COLORS = [
+      "#211B30",
+      "#C0404B",
+      "#B8201D",
+      "#C84208",
+      "#CC9111",
+      "#339000",
+      "#16803B",
+      "#09ABA9",
+      "#376DED",
+      "#5666ED",
+      "#765BE6",
+      "#994CD2"
+    ]
+
+    const WORDS_PER_TEXT = 60
+    const WORDS_PER_LINE = 6
+    const TOTAL_HOURS = 24
+    const MINUTES_PER_HOUR = 60
+    const HOURS_PER_QUARTER = 6
+    const SECOND_START_LEFT = 7.25
+    const SECOND_END_LEFT = 84.75
+
+    const stage = document.querySelector("#clockStage")
+    const loadState = document.querySelector("#loadState")
+    const hourNumber = document.querySelector("#hourNumber")
+    const hourBars = document.querySelector("#hourBars")
+    const minuteNumber = document.querySelector("#minuteNumber")
+    const storyTitle = document.querySelector("#storyTitle")
+    const storyBody = document.querySelector("#storyBody")
+    const secondNumber = document.querySelector("#secondNumber")
+
+    let texts = []
+    let lastMinuteKey = ""
+    let lastSecond = -1
+
+    function makeHourBars() {
+      for (let hour = 0; hour < TOTAL_HOURS; hour += 1) {
+        const bar = document.createElement("div")
+        bar.className = "hour-bar"
+        hourBars.appendChild(bar)
+      }
+    }
+
+    function makeStorySlots() {
+      for (let row = 0; row < WORDS_PER_TEXT / WORDS_PER_LINE; row += 1) {
+        const line = document.createElement("div")
+        line.className = "story-line"
+
+        for (let column = 0; column < WORDS_PER_LINE; column += 1) {
+          const word = document.createElement("span")
+          word.className = "story-word is-waiting"
+          line.appendChild(word)
+        }
+
+        storyBody.appendChild(line)
+      }
+    }
+
+    function parseTexts(source) {
+      const blocks = source.trim().split(/\n\s*\n/)
+
+      return blocks.map((block) => {
+        const lines = block.trim().split("\n").filter(Boolean)
+        const title = lines[0].replace(/^\d+\.\s*/, "")
+        const body = lines.slice(1).join(" ").trim()
+        const words = body.split(/\s+/).filter(Boolean)
+
+        return { title, words }
+      }).filter((text) => text.title && text.words.length)
+    }
+
+    function seededRandom(seed) {
+      let value = seed >>> 0
+
+      return function random() {
+        value += 0x6D2B79F5
+        let t = value
+        t = Math.imul(t ^ t >>> 15, t | 1)
+        t ^= t + Math.imul(t ^ t >>> 7, t | 61)
+        return ((t ^ t >>> 14) >>> 0) / 4294967296
+      }
+    }
+
+    function shuffle(items, seed) {
+      const random = seededRandom(seed)
+      const result = items.slice()
+
+      for (let index = result.length - 1; index > 0; index -= 1) {
+        const swapIndex = Math.floor(random() * (index + 1))
+        const current = result[index]
+        result[index] = result[swapIndex]
+        result[swapIndex] = current
+      }
+
+      return result
+    }
+
+    function seedFromTime(date, hour) {
+      const year = date.getFullYear()
+      const month = date.getMonth() + 1
+      const day = date.getDate()
+
+      return year * 1000000 + month * 10000 + day * 100 + hour
+    }
+
+    function textForMinute(date, hour, minute) {
+      const seed = seedFromTime(date, hour)
+      const shuffled = shuffle(texts, seed)
+      const repeated = shuffled.slice(0, MINUTES_PER_HOUR - texts.length)
+      const hourTexts = shuffle(shuffled.concat(repeated), seed + 97)
+
+      return hourTexts[minute]
+    }
+
+    function visibleDate(now) {
+      if (now.getSeconds() !== 0) {
+        return now
+      }
+
+      return new Date(now.getTime() - 1000)
+    }
+
+    function setBackground(hour) {
+      const color = COLORS[hour % COLORS.length]
+      document.body.style.setProperty("--clock-color", color)
+    }
+
+    function setHour(hour) {
+      const bars = Array.from(hourBars.children)
+      const currentQuarter = Math.floor(hour / HOURS_PER_QUARTER)
+      const barCenter = (46 + hour * 41.745 + 13.945) / 1080 * 100
+
+      stage.style.setProperty("--hour-x", barCenter + "%")
+      hourNumber.textContent = hour
+
+      bars.forEach((bar, index) => {
+        const quarter = Math.floor(index / HOURS_PER_QUARTER)
+        bar.classList.toggle("is-current-quarter", quarter === currentQuarter)
+        bar.classList.toggle("is-current-hour", index === hour)
+      })
+    }
+
+    function normalizeWords(words) {
+      return words.concat(Array(WORDS_PER_TEXT).fill("")).slice(0, WORDS_PER_TEXT)
+    }
+
+    function setStory(text, wordCount) {
+      const slots = Array.from(storyBody.querySelectorAll(".story-word"))
+      const words = normalizeWords(text.words)
+
+      storyTitle.textContent = text.title
+
+      slots.forEach((slot, index) => {
+        slot.textContent = words[index]
+        slot.classList.toggle("is-waiting", index >= wordCount || words[index] === "")
+      })
+    }
+
+    function setSecondPosition(second) {
+      const progress = (second - 1) / (WORDS_PER_TEXT - 1)
+      const left = SECOND_START_LEFT + (SECOND_END_LEFT - SECOND_START_LEFT) * progress
+
+      stage.style.setProperty("--second-left", left + "cqw")
+    }
+
+    function updateClock() {
+      if (!texts.length) {
+        return
+      }
+
+      const now = new Date()
+      const shown = visibleDate(now)
+      const hour = shown.getHours()
+      const minute = shown.getMinutes()
+      const second = now.getSeconds() || WORDS_PER_TEXT
+      const minuteKey = [
+        shown.getFullYear(),
+        shown.getMonth(),
+        shown.getDate(),
+        hour,
+        minute
+      ].join("-")
+
+      setBackground(hour)
+      setHour(hour)
+      minuteNumber.textContent = ": " + minute + " :"
+      secondNumber.textContent = "::" + second
+      setSecondPosition(second)
+
+      if (minuteKey !== lastMinuteKey || second !== lastSecond) {
+        setStory(textForMinute(shown, hour, minute), second)
+        lastMinuteKey = minuteKey
+        lastSecond = second
+      }
+    }
+
+    async function startClock() {
+      makeHourBars()
+      makeStorySlots()
+
+      try {
+        const response = await fetch("./titled_texts.txt")
+
+        if (!response.ok) {
+          throw new Error("텍스트 파일을 찾을 수 없습니다.")
+        }
+
+        texts = parseTexts(await response.text())
+
+        if (texts.length !== 58) {
+          throw new Error("58개의 글이 필요하지만 " + texts.length + "개를 찾았습니다.")
+        }
+
+        stage.classList.remove("is-loading")
+        updateClock()
+        setInterval(updateClock, 1000)
+      } catch (error) {
+        stage.classList.remove("is-loading")
+        stage.classList.add("has-error")
+        loadState.textContent = "titled_texts.txt를 불러오지 못했습니다. 로컬 서버에서 clock.html을 열어주세요."
+      }
+    }
+
+    startClock()
+  </script>
+</body>
+</html>

@@ -6,57 +6,112 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Bldg 500</title>
   <link rel="stylesheet" href="style.css" />
+  <script src="script.js" defer></script>
 </head>
 
 <body>
-  <main class="page">
+  <main class="page" data-view="board">
     <header class="site-header" aria-label="Bldg 500 poster board">
-      <a class="brand" href="#" aria-label="Bldg 500, College of Fine Arts home">
+      <a class="brand" href="#" aria-label="Bldg 500, College of Fine Arts home" data-action="show-board">
         <span class="brand-title">Bldg 500</span>
         <span class="brand-subtitle">College of Fine Arts</span>
       </a>
 
       <nav class="nav-links" aria-label="Page actions">
-        <a href="#posters">Add Poster</a>
-        <a class="is-active" href="../index.html">Go Back</a>
+        <button class="nav-action" type="button" data-action="show-editor">Add Poster</button>
+        <a class="is-active" href="../index.html" data-action="go-back">Go Back</a>
       </nav>
     </header>
 
     <div class="section-divider" aria-hidden="true"></div>
 
-    <section class="poster-grid" id="posters" aria-label="Poster collection">
-      <figure class="poster-card">
-        <img src="assets/poster-1.png" alt="Poster 1" />
-      </figure>
-      <figure class="poster-card">
-        <img src="assets/poster-2.png" alt="Poster 2" />
-      </figure>
-      <figure class="poster-card">
-        <img src="assets/poster-3.png" alt="Poster 3" />
-      </figure>
-      <figure class="poster-card">
-        <img src="assets/poster-4.png" alt="Poster 4" />
-      </figure>
-      <figure class="poster-card">
-        <img src="assets/poster-5.png" alt="Poster 5" />
-      </figure>
-      <figure class="poster-card">
-        <img src="assets/poster-6.png" alt="Poster 6" />
-      </figure>
-      <figure class="poster-card">
-        <img src="assets/poster-7.png" alt="Poster 7" />
-      </figure>
-      <figure class="poster-card">
-        <img src="assets/poster-8.png" alt="Poster 8" />
-      </figure>
-      <figure class="poster-card">
-        <img src="assets/poster-9.png" alt="Poster 9" />
-      </figure>
-      <figure class="poster-card">
-        <img src="assets/poster-10.png" alt="Poster 10" />
-      </figure>
+    <section class="board-view" aria-label="Uploaded posters">
+      <div class="poster-grid" id="posters"></div>
+    </section>
+
+    <section class="editor-view" aria-label="Poster editor" hidden>
+      <div class="editor-stage">
+        <article class="poster-editor" id="posterEditor" style="--poster-bg: #ffffff;">
+          <div class="element-layout" id="elementLayout" aria-label="Poster elements"></div>
+        </article>
+
+        <div class="editor-buttons" aria-label="Editor actions">
+          <button class="icon-button" type="button" data-action="add-element" title="Add element"
+            aria-label="Add element">+</button>
+          <button class="icon-button" type="button" data-action="confirm-upload" title="Finish poster"
+            aria-label="Finish poster">✓</button>
+        </div>
+      </div>
+
+      <aside class="tool-panel" aria-label="Editing tools">
+        <div class="tool-row tool-row-segmented" role="group" aria-label="Element type">
+          <button class="tool-choice is-selected" type="button" data-kind="text" aria-pressed="true">Text</button>
+          <button class="tool-choice" type="button" data-kind="shape" aria-pressed="false">Shape</button>
+          <button class="tool-choice" type="button" data-kind="image" aria-pressed="false">Image</button>
+        </div>
+
+        <label class="tool-row" data-control="text">
+          <span>Text</span>
+          <input id="elementText" type="text" value="Poster note" maxlength="42" />
+        </label>
+
+        <label class="tool-row" data-control="shape">
+          <span>Shape</span>
+          <select id="shapeType">
+            <option value="circle">Circle</option>
+            <option value="rect">Square</option>
+            <option value="diamond">Diamond</option>
+            <option value="bar">Bar</option>
+          </select>
+        </label>
+
+        <label class="tool-row">
+          <span>Color</span>
+          <input id="elementColor" type="color" value="#1649ff" />
+        </label>
+
+        <label class="tool-row">
+          <span>Poster</span>
+          <input id="posterColor" type="color" value="#ffffff" />
+        </label>
+
+        <label class="tool-row">
+          <span>Size</span>
+          <input id="elementSize" type="range" min="14" max="100" value="34" />
+        </label>
+
+        <label class="tool-row" data-control="text">
+          <span>Font</span>
+          <input id="fontSize" type="range" min="16" max="110" value="34" />
+        </label>
+
+        <label class="tool-row" data-control="image">
+          <span>Image</span>
+          <input id="imageUpload" type="file" accept="image/*" />
+        </label>
+
+        <div class="tool-actions" aria-label="Selected element actions">
+          <button type="button" data-action="duplicate-element">Duplicate</button>
+          <button type="button" data-action="bring-forward">Forward</button>
+          <button type="button" data-action="delete-element">Delete</button>
+        </div>
+      </aside>
     </section>
   </main>
+
+  <div class="modal-backdrop" id="uploadModal" hidden>
+    <section class="upload-dialog" role="dialog" aria-modal="true" aria-labelledby="uploadDialogTitle">
+      <h2 id="uploadDialogTitle">Would you like to upload this poster?</h2>
+      <div class="dialog-actions">
+        <button type="button" data-action="cancel-upload">Cancel</button>
+        <button type="button" data-action="upload-poster">Upload</button>
+      </div>
+    </section>
+  </div>
+
+  <div class="poster-lightbox" id="posterLightbox" hidden>
+    <img id="lightboxImage" src="" alt="Expanded poster" />
+  </div>
 </body>
 
 </html>

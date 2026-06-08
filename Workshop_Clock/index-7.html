@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>시계?</title>
+  <style>
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    html {
+      font-size: 16px;
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 1rem;
+      line-height: 1.5;
+      font-variant-numeric: tabular-nums;
+      color: white;
+      background: black;
+    }
+
+    #clock {
+      max-width: 40rem;
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(10, 1fr);
+      gap: .125rem;
+    }
+
+    #clock div {
+      aspect-ratio: 1;
+      border: 1px solid white;
+      background: black;
+    }
+
+    #clock div.on {
+      background: white;
+    }
+  </style>
+</head>
+<body>
+  <div id="clock"></div>
+
+  <script>
+    const clock = document.querySelector("#clock")
+    let blocks = ""
+
+    for (let index = 0; index < 60; index = index + 1) {
+      blocks = blocks + "<div></div>"
+    }
+
+    clock.innerHTML = blocks
+    const cells = document.querySelectorAll("#clock div")
+
+    function updateClock() {
+      const now = new Date()
+      const seconds = now.getSeconds()
+
+      for (let index = 0; index < cells.length; index = index + 1) {
+        cells[index].className = index <= seconds ? "on" : ""
+      }
+    }
+
+    updateClock()
+    setInterval(updateClock, 1000)
+  </script>
+</body>
+</html>

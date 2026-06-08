@@ -1,0 +1,184 @@
+@font-face {
+  font-family: "Afacad Medium";
+  src: url("./Afacad-Medium.ttf") format("truetype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "KoPubWorld Batang Pro";
+  src: url("./KoPubWorld Batang_Pro Medium.otf") format("opentype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "KoPubWorld Batang Pro";
+  src: url("./KoPubWorld Batang_Pro Bold.otf") format("opentype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-synthesis: none;
+  color: white;
+  background: var(--clock-color, #211b30);
+}
+
+.clock-stage {
+  position: relative;
+  width: min(100vw, 56.25vh);
+  aspect-ratio: 9 / 16;
+  overflow: hidden;
+  container-type: size;
+  color: white;
+  background: var(--clock-color, #211b30);
+}
+
+.hour-number {
+  position: absolute;
+  top: 3.45cqh;
+  left: var(--hour-x, 50%);
+  transform: translateX(-50%);
+  font-family: "Afacad Medium", sans-serif;
+  font-size: 3.704cqw;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.05em;
+  font-variant-numeric: tabular-nums;
+}
+
+.hour-bars {
+  position: absolute;
+  top: 5.62cqh;
+  left: 4.26cqw;
+  display: grid;
+  grid-template-columns: repeat(24, 1fr);
+  align-items: center;
+  gap: 1.285cqw;
+  width: 91.49cqw;
+}
+
+.hour-bar {
+  width: 100%;
+  height: 0.324cqw;
+  background: currentColor;
+  opacity: 0.5;
+}
+
+.hour-bar.is-current-quarter {
+  opacity: 1;
+}
+
+.hour-bar.is-current-hour {
+  height: 0.833cqw;
+}
+
+.minute-number,
+.story-title,
+.second-number {
+  font-family: "KoPubWorld Batang Pro", serif;
+  font-weight: 700;
+  font-size: 3.704cqw;
+  line-height: 1.2;
+  color: currentColor;
+}
+
+.minute-number {
+  position: absolute;
+  top: 12.85cqh;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  letter-spacing: 0.1em;
+  font-variant-numeric: tabular-nums;
+}
+
+.story-title {
+  position: absolute;
+  top: 16.35cqh;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  letter-spacing: 0.03em;
+}
+
+.story-body {
+  position: absolute;
+  top: 25.9cqh;
+  left: 6.86cqw;
+  right: 6.86cqw;
+  display: grid;
+  grid-template-rows: repeat(10, 1fr);
+  height: 51.5cqh;
+  font-family: "KoPubWorld Batang Pro", serif;
+  font-size: 3.981cqw;
+  font-weight: 500;
+  line-height: 2.45;
+  letter-spacing: -0.06em;
+}
+
+.story-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.story-word {
+  display: inline-block;
+  min-width: 0;
+}
+
+.story-word.is-waiting {
+  opacity: 0;
+}
+
+.second-number {
+  position: absolute;
+  left: var(--second-left, 84.75cqw);
+  width: 8cqw;
+  bottom: 14.7cqh;
+  text-align: right;
+  letter-spacing: 0.1em;
+  font-variant-numeric: tabular-nums;
+}
+
+.load-state {
+  position: absolute;
+  left: 6.86cqw;
+  right: 6.86cqw;
+  top: 45cqh;
+  display: none;
+  font-family: "KoPubWorld Batang Pro", serif;
+  font-size: 2.4cqw;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.clock-stage.is-loading .load-state,
+.clock-stage.has-error .load-state {
+  display: block;
+}

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>시계?</title>
+  <style>
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    html {
+      font-size: 16px;
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 1rem;
+      line-height: 1.5;
+      font-variant-numeric: tabular-nums;
+      color: white;
+      background: black;
+    }
+
+    #clock {
+      font-size: 6vw;
+    }
+  </style>
+</head>
+<body>
+  <div id="clock"></div>
+
+  <script>
+    const clock = document.querySelector("#clock")
+
+    function updateClock() {
+      const now = new Date()
+      const hour = now.getHours()
+      const minute = now.getMinutes()
+      const second = now.getSeconds()
+      let feeling = "막 시작한"
+
+      if (second > 44) {
+        feeling = "거의 다음 분인"
+      } else if (second > 29) {
+        feeling = "조금 늦은"
+      } else if (second > 14) {
+        feeling = "한창인"
+      }
+
+      clock.textContent = hour + "시 " + minute + "분은 지금 " + feeling + " 중"
+    }
+
+    updateClock()
+    setInterval(updateClock, 1000)
+  </script>
+</body>
+</html>

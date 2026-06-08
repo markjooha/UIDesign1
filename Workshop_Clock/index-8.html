@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>시계?</title>
+  <style>
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    html {
+      font-size: 16px;
+    }
+
+    body {
+      position: relative;
+      padding: 1rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 1rem;
+      line-height: 1.5;
+      font-variant-numeric: tabular-nums;
+      color: white;
+      background: black;
+    }
+
+    #clock {
+      position: absolute;
+      aspect-ratio: 1;
+      max-width: 10rem;
+      width: 100%;
+      padding: 1rem;
+      border: 1px solid currentColor;
+      font-size: 1rem;
+      text-transform: uppercase;
+      white-space: pre-line;
+    }
+  </style>
+</head>
+<body>
+  <div id="clock"></div>
+
+  <script>
+    const clock = document.querySelector("#clock")
+
+    function updateClock() {
+      const now = new Date()
+      const x = now.getHours()
+      const y = now.getMinutes()
+      const z = now.getSeconds()
+      const left = 10 + x * 80 / 23
+      const top = 10 + y * 80 / 59
+      const scale = 0.5 + z / 59
+
+      clock.style.left = left + "%"
+      clock.style.top = top + "%"
+      clock.style.transform = "translate(-50%, -50%) scale(" + scale + ")"
+      clock.textContent = "x " + x + "\ny " + y + "\nz " + z
+    }
+
+    updateClock()
+    setInterval(updateClock, 1000)
+  </script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>시계?</title>
+  <style>
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    html {
+      font-size: 16px;
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 1rem;
+      line-height: 1.5;
+      font-variant-numeric: tabular-nums;
+      color: white;
+      background: black;
+      transition: background 0.5s linear;
+    }
+  </style>
+</head>
+<body>
+  <script>
+    function updateClock() {
+      const now = new Date()
+      const red = now.getHours() * 255 / 23
+      const green = now.getMinutes() * 255 / 59
+      const blue = now.getSeconds() * 255 / 59
+
+      document.body.style.background = "rgb(" + red + " " + green + " " + blue + ")"
+    }
+
+    updateClock()
+    setInterval(updateClock, 1000)
+  </script>
+</body>
+</html>
