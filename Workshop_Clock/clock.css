@@ -43,7 +43,7 @@ body {
   justify-content: center;
   font-synthesis: none;
   color: white;
-  background: var(--clock-color, #211b30);
+  background: black;
 }
 
 .clock-stage {
