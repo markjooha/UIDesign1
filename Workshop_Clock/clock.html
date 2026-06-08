@@ -41,6 +41,13 @@
     const HOURS_PER_QUARTER = 6
     const SECOND_START_LEFT = 7.25
     const SECOND_END_LEFT = 84.75
+    const TEXT_PATHS = [
+      "titled_texts.txt",
+      "./titled_texts.txt",
+      "Workshop_Clock/titled_texts.txt",
+      "./Workshop_Clock/titled_texts.txt",
+      "../Workshop_Clock/titled_texts.txt"
+    ]
 
     const stage = document.querySelector("#clockStage")
     const loadState = document.querySelector("#loadState")
@@ -89,6 +96,28 @@
 
         return { title, words }
       }).filter((text) => text.title && text.words.length)
+    }
+
+    async function fetchTextSource() {
+      let lastError = null
+
+      for (let index = 0; index < TEXT_PATHS.length; index += 1) {
+        const textUrl = new URL(TEXT_PATHS[index], window.location.href)
+
+        try {
+          const response = await fetch(textUrl)
+
+          if (response.ok) {
+            return await response.text()
+          }
+
+          lastError = new Error(textUrl.pathname + " 응답 상태: " + response.status)
+        } catch (error) {
+          lastError = error
+        }
+      }
+
+      throw lastError || new Error("텍스트 파일을 찾을 수 없습니다.")
     }
 
     function seededRandom(seed) {
@@ -219,14 +248,7 @@
       makeStorySlots()
 
       try {
-        const textUrl = new URL("titled_texts.txt", window.location.href)
-        const response = await fetch(textUrl)
-
-        if (!response.ok) {
-          throw new Error("텍스트 파일을 찾을 수 없습니다.")
-        }
-
-        texts = parseTexts(await response.text())
+        texts = parseTexts(await fetchTextSource())
 
         if (texts.length !== EXPECTED_TEXT_COUNT) {
           throw new Error(EXPECTED_TEXT_COUNT + "개의 글이 필요하지만 " + texts.length + "개를 찾았습니다.")
@@ -238,7 +260,7 @@
       } catch (error) {
         stage.classList.remove("is-loading")
         stage.classList.add("has-error")
-        loadState.textContent = "titled_texts.txt를 불러오지 못했습니다. clock.html과 같은 폴더에 titled_texts.txt가 함께 있는지 확인해주세요."
+        loadState.textContent = "titled_texts.txt를 불러오지 못했습니다. clock.html과 같은 폴더 또는 Workshop_Clock 폴더 안에 titled_texts.txt가 있는지 확인해주세요."
       }
     }
 
