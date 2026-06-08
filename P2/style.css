@@ -206,26 +206,35 @@ button {
 }
 
 .poster-grid {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(180px, 254px));
-  gap: 36px 42px;
-  align-items: start;
-  justify-content: start;
+  position: relative;
+  display: block;
+  width: 100%;
+  height: min(760px, calc(100vh - 230px));
+  min-height: 520px;
+  overflow: hidden;
 }
 
 .poster-card {
-  position: relative;
-  width: 100%;
+  position: absolute;
+  top: calc(var(--wall-y) * 1%);
+  left: calc(var(--wall-x) * 1%);
+  z-index: var(--wall-z);
+  width: clamp(160px, 17.2vw, 255px);
   margin: 0;
+  transform: translate(-50%, -50%) rotate(var(--wall-r));
+  transform-origin: center;
+  transition: filter 180ms ease, opacity 180ms ease, transform 180ms ease;
 }
 
 .poster-card button {
+  position: relative;
   display: block;
   width: 100%;
   padding: 0;
   border: 0;
   background: transparent;
   text-align: inherit;
+  z-index: 1;
 }
 
 .poster-card img {
@@ -233,21 +242,95 @@ button {
   width: 100%;
   aspect-ratio: 260 / 367;
   object-fit: cover;
-  box-shadow: 8px 9px 0 rgb(0 0 0 / 0.18);
-  transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
+  box-shadow: 4px 5px 0 rgb(0 0 0 / 0.09);
+  transition: clip-path 180ms ease, filter 180ms ease, opacity 180ms ease, transform 180ms ease, box-shadow 180ms ease;
 }
 
 .poster-card figcaption {
-  margin-top: 13px;
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  margin: 0;
   font-size: 18px;
   font-weight: 520;
+  line-height: 1;
+  opacity: 0.72;
 }
 
 .poster-card:hover img,
 .poster-card:focus-within img {
   transform: translateY(-10px) rotate(-1deg);
-  box-shadow: 14px 17px 0 rgb(0 0 0 / 0.24);
+  box-shadow: 7px 8px 0 rgb(0 0 0 / 0.12);
   filter: saturate(1.08);
+}
+
+.poster-card.is-aging img,
+.poster-card.is-aged img,
+.poster-card.is-vanishing img {
+  clip-path: polygon(2% 3%, 13% 1%, 21% 4%, 33% 2%, 46% 5%, 59% 3%, 72% 6%, 88% 2%, 98% 5%, 96% 95%, 83% 98%, 68% 95%, 54% 99%, 43% 96%, 28% 98%, 15% 94%, 4% 97%);
+}
+
+.poster-card.is-aging img {
+  opacity: 0.82;
+  filter: saturate(0.72) contrast(0.92) brightness(1.03);
+}
+
+.poster-card.is-aged img {
+  opacity: 0.58;
+  filter: grayscale(0.45) saturate(0.42) contrast(0.82) brightness(1.08);
+}
+
+.poster-card.is-vanishing img {
+  opacity: 0.32;
+  filter: grayscale(0.82) saturate(0.22) contrast(0.72) brightness(1.13);
+}
+
+.poster-card.is-aging::before,
+.poster-card.is-aged::before,
+.poster-card.is-aged::after,
+.poster-card.is-vanishing::before,
+.poster-card.is-vanishing::after {
+  position: absolute;
+  z-index: 2;
+  pointer-events: none;
+  content: "";
+}
+
+.poster-card.is-aging::before,
+.poster-card.is-aged::before,
+.poster-card.is-vanishing::before {
+  top: -5%;
+  left: -5%;
+  width: 72%;
+  height: 20%;
+  background: rgb(238 238 233 / 0.92);
+  box-shadow: inset 0 -7px 10px rgb(0 0 0 / 0.06);
+  clip-path: polygon(0 18%, 8% 12%, 17% 21%, 28% 10%, 39% 19%, 51% 8%, 66% 20%, 81% 11%, 100% 17%, 96% 86%, 84% 79%, 67% 91%, 48% 78%, 30% 90%, 16% 77%, 4% 88%);
+  opacity: 0.72;
+  transform: rotate(-2.5deg);
+}
+
+.poster-card.is-aged::after,
+.poster-card.is-vanishing::after {
+  right: -8%;
+  bottom: 13%;
+  width: 84%;
+  height: 17%;
+  background: rgb(244 244 239 / 0.88);
+  box-shadow: inset 0 6px 10px rgb(0 0 0 / 0.05);
+  clip-path: polygon(0 28%, 9% 18%, 24% 30%, 36% 13%, 50% 25%, 65% 12%, 79% 27%, 100% 18%, 98% 78%, 84% 86%, 70% 74%, 55% 88%, 38% 76%, 21% 91%, 6% 78%);
+  transform: rotate(3deg);
+}
+
+.poster-card.is-vanishing::before {
+  width: 88%;
+  height: 28%;
+  opacity: 0.86;
+}
+
+.poster-card.is-vanishing::after {
+  height: 26%;
+  opacity: 0.82;
 }
 
 .editor-view {
@@ -572,10 +655,6 @@ button {
     padding-left: 28px;
   }
 
-  .poster-grid {
-    grid-template-columns: repeat(4, minmax(170px, 1fr));
-  }
-
   .editor-view {
     gap: 36px;
   }
@@ -594,11 +673,6 @@ button {
     gap: 28px;
     padding-top: 18px;
     font-size: 22px;
-  }
-
-  .poster-grid {
-    grid-template-columns: repeat(3, minmax(150px, 1fr));
-    gap: 28px;
   }
 
   .editor-view {
@@ -634,8 +708,16 @@ button {
   }
 
   .poster-grid {
-    grid-template-columns: repeat(2, minmax(130px, 1fr));
-    gap: 22px 18px;
+    height: min(640px, calc(100vh - 210px));
+    min-height: 460px;
+  }
+
+  .poster-card {
+    width: clamp(126px, 37vw, 178px);
+  }
+
+  .poster-card figcaption {
+    font-size: 14px;
   }
 
   .poster-editor {

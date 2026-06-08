@@ -1,6 +1,25 @@
-const STORAGE_KEY = "bldg-500-posters";
+const STORAGE_KEY = "bldg-50-posters";
+const LEGACY_STORAGE_KEY = "bldg-500-posters";
 const MAX_ELEMENTS = 18;
 const TITLE_ID = "poster-title";
+const DAY_MS = 24 * 60 * 60 * 1000;
+const POSTER_LIFETIME_DAYS = 14;
+const AGED_DEMO_DAYS = 5;
+
+const wallSlots = [
+  { x: 10, y: 17, r: -2.2 },
+  { x: 27, y: 22, r: 1.4 },
+  { x: 45, y: 18, r: -0.9 },
+  { x: 63, y: 23, r: 2.1 },
+  { x: 82, y: 18, r: -1.5 },
+  { x: 18, y: 56, r: 1.7 },
+  { x: 37, y: 61, r: -2.6 },
+  { x: 56, y: 55, r: 0.8 },
+  { x: 75, y: 62, r: -1.8 },
+  { x: 90, y: 52, r: 2.4 },
+  { x: 31, y: 39, r: 2.7 },
+  { x: 69, y: 41, r: -2.3 },
+];
 
 const defaultTitle = {
   id: TITLE_ID,
@@ -46,7 +65,9 @@ const lightboxImage = document.querySelector("#lightboxImage");
 
 function loadPosters() {
   try {
-    state.posters = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    const storedPosters = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);
+    state.posters = JSON.parse(storedPosters) || [];
+    state.posters = state.posters.filter((poster) => getPosterAgeDays(poster.createdAt) < POSTER_LIFETIME_DAYS);
   } catch {
     state.posters = [];
   }
@@ -84,6 +105,72 @@ function formatDate(dateValue) {
   return `${month} ${day}${getOrdinalSuffix(day)}`;
 }
 
+function getPosterAgeDays(dateValue) {
+  return Math.max(0, Math.floor((Date.now() - new Date(dateValue).getTime()) / DAY_MS));
+}
+
+function getPosterAgeClass(ageDays) {
+  if (ageDays >= 10) return "is-vanishing";
+  if (ageDays >= 6) return "is-aged";
+  if (ageDays >= 3) return "is-aging";
+  return "";
+}
+
+function getWallSlot(index) {
+  const slot = wallSlots[index % wallSlots.length];
+  const layer = Math.floor(index / wallSlots.length);
+  const xOffset = ((layer % 3) - 1) * 2.4;
+  const yOffset = ((layer % 2) - 0.5) * 4.2;
+  return {
+    x: clamp(slot.x + xOffset, 7, 93),
+    y: clamp(slot.y + yOffset, 13, 87),
+    r: slot.r + ((layer % 4) - 1.5) * 0.7,
+  };
+}
+
+function getAgedDemoPoster() {
+  const createdAt = new Date(Date.now() - AGED_DEMO_DAYS * DAY_MS);
+  return {
+    id: "aged-demo-poster",
+    title: "Aged sample poster",
+    createdAt: createdAt.toISOString(),
+    image: buildAgedDemoSvg(),
+    isDemo: true,
+  };
+}
+
+function getBoardPosters() {
+  return [...state.posters, getAgedDemoPoster()]
+    .filter((poster) => poster.isDemo || getPosterAgeDays(poster.createdAt) < POSTER_LIFETIME_DAYS);
+}
+
+function buildAgedDemoSvg() {
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="520" height="734" viewBox="0 0 520 734">
+      <defs>
+        <filter id="paperNoise">
+          <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="5" seed="50"/>
+          <feColorMatrix type="saturate" values="0"/>
+          <feComponentTransfer>
+            <feFuncA type="table" tableValues="0 0.18"/>
+          </feComponentTransfer>
+          <feBlend mode="multiply" in2="SourceGraphic"/>
+        </filter>
+      </defs>
+      <rect width="520" height="734" fill="#eee9df"/>
+      <path d="M31 25 L109 16 L184 27 L264 18 L353 31 L472 17 L500 52 L489 248 L503 372 L487 689 L386 704 L303 691 L222 715 L126 694 L34 710 L18 587 L33 451 L19 309 Z" fill="#f6f2e8" filter="url(#paperNoise)"/>
+      <path d="M34 104 C82 79 135 130 185 93 C242 51 279 139 336 92 C390 48 445 105 492 83" fill="none" stroke="#111" stroke-width="8" opacity="0.68"/>
+      <text x="56" y="223" font-family="Inter, Arial, sans-serif" font-size="44" font-weight="780" fill="#111">Bldg 50</text>
+      <text x="56" y="283" font-family="Inter, Arial, sans-serif" font-size="30" font-weight="520" fill="#111">weathered notice</text>
+      <text x="56" y="340" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="520" fill="#555">${AGED_DEMO_DAYS} days on the wall</text>
+      <path d="M58 507 L466 482" stroke="#111" stroke-width="3" opacity="0.42"/>
+      <path d="M84 538 L302 525" stroke="#111" stroke-width="2" opacity="0.26"/>
+      <rect x="0" y="0" width="520" height="734" fill="none" stroke="#111" stroke-width="4" opacity="0.58"/>
+    </svg>
+  `;
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg.trim())}`;
+}
+
 function escapeXml(value) {
   return String(value)
     .replaceAll("&", "&amp;")
@@ -103,9 +190,16 @@ function setView(viewName) {
 function renderBoard() {
   postersGrid.innerHTML = "";
 
-  state.posters.forEach((poster) => {
+  getBoardPosters().forEach((poster, index) => {
+    const ageDays = getPosterAgeDays(poster.createdAt);
+    const ageClass = getPosterAgeClass(ageDays);
+    const slot = getWallSlot(index);
     const card = document.createElement("figure");
-    card.className = "poster-card";
+    card.className = `poster-card ${ageClass}`.trim();
+    card.style.setProperty("--wall-x", slot.x);
+    card.style.setProperty("--wall-y", slot.y);
+    card.style.setProperty("--wall-r", `${slot.r}deg`);
+    card.style.setProperty("--wall-z", String(1000 - index));
 
     const button = document.createElement("button");
     button.type = "button";
@@ -384,7 +478,7 @@ function uploadPoster() {
 }
 
 function expandPoster(posterId) {
-  const poster = state.posters.find((item) => item.id === posterId);
+  const poster = getBoardPosters().find((item) => item.id === posterId);
   if (!poster) return;
   lightboxImage.src = poster.image;
   posterLightbox.hidden = false;
