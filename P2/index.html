@@ -12,10 +12,11 @@
 <body>
   <main class="page" data-view="board">
     <header class="site-header" aria-label="Bldg 50 poster board">
-      <a class="brand" href="#" aria-label="Bldg 50, College of Fine Arts home" data-action="show-board">
+      <button class="brand" type="button" aria-label="Choose a College of Fine Arts building"
+        data-action="open-building-menu">
         <span class="brand-title">Bldg 50</span>
         <span class="brand-subtitle">College of Fine Arts</span>
-      </a>
+      </button>
 
       <nav class="nav-links" aria-label="Page actions">
         <button class="nav-action" type="button" data-action="show-editor">Add Poster</button>
@@ -25,25 +26,26 @@
 
     <div class="section-divider" aria-hidden="true"></div>
 
-    <section class="board-view" aria-label="Uploaded posters">
-      <div class="poster-grid" id="posters"></div>
-    </section>
+    <div class="view-stack">
+      <section class="board-view" aria-label="Uploaded posters">
+        <div class="poster-grid" id="posters"></div>
+      </section>
 
-    <section class="editor-view" aria-label="Poster editor" hidden>
-      <div class="editor-stage">
-        <article class="poster-editor" id="posterEditor" style="--poster-bg: #ffffff;">
-          <div class="element-layout" id="elementLayout" aria-label="Poster elements"></div>
-        </article>
+      <section class="editor-view" aria-label="Poster editor" hidden>
+        <div class="editor-stage">
+          <article class="poster-editor" id="posterEditor" style="--poster-bg: #ffffff;">
+            <div class="element-layout" id="elementLayout" aria-label="Poster elements"></div>
+          </article>
 
-        <div class="editor-buttons" aria-label="Editor actions">
-          <button class="icon-button" type="button" data-action="add-element" title="Add element"
-            aria-label="Add element">+</button>
-          <button class="icon-button" type="button" data-action="confirm-upload" title="Finish poster"
-            aria-label="Finish poster">✓</button>
+          <div class="editor-buttons" aria-label="Editor actions">
+            <button class="icon-button" type="button" data-action="add-element" title="Add element"
+              aria-label="Add element">+</button>
+            <button class="icon-button" type="button" data-action="confirm-upload" title="Finish poster"
+              aria-label="Finish poster">✓</button>
+          </div>
         </div>
-      </div>
 
-      <aside class="tool-panel" aria-label="Editing tools">
+        <aside class="tool-panel" aria-label="Editing tools">
         <div class="tool-row tool-row-segmented" role="group" aria-label="Element type">
           <button class="tool-choice is-selected" type="button" data-kind="text" aria-pressed="true">Text</button>
           <button class="tool-choice" type="button" data-kind="shape" aria-pressed="false">Shape</button>
@@ -59,9 +61,15 @@
           <span>Shape</span>
           <select id="shapeType">
             <option value="circle">Circle</option>
-            <option value="rect">Square</option>
+            <option value="square">Square</option>
+            <option value="triangle">Triangle</option>
+            <option value="star">Star</option>
+            <option value="hexagon">Hexagon</option>
             <option value="diamond">Diamond</option>
-            <option value="bar">Bar</option>
+            <option value="cross">Cross</option>
+            <option value="ring">Ring</option>
+            <option value="capsule">Capsule</option>
+            <option value="arch">Arch</option>
           </select>
         </label>
 
@@ -95,8 +103,9 @@
           <button type="button" data-action="bring-forward">Forward</button>
           <button type="button" data-action="delete-element">Delete</button>
         </div>
-      </aside>
-    </section>
+        </aside>
+      </section>
+    </div>
   </main>
 
   <div class="modal-backdrop" id="uploadModal" hidden>
@@ -111,6 +120,20 @@
 
   <div class="poster-lightbox" id="posterLightbox" hidden>
     <img id="lightboxImage" src="" alt="Expanded poster" />
+  </div>
+
+  <div class="building-overlay" id="buildingOverlay" hidden>
+    <section class="building-menu" role="dialog" aria-modal="true" aria-labelledby="buildingMenuTitle">
+      <div class="building-menu-header">
+        <h2 id="buildingMenuTitle">Buildings</h2>
+        <button class="building-close" type="button" data-action="close-building-menu" aria-label="Close">×</button>
+      </div>
+      <div class="building-list" aria-label="College of Fine Arts buildings">
+        <button type="button" data-building="50"><span>Bldg</span><strong>50</strong></button>
+        <button type="button" data-building="49"><span>Bldg</span><strong>49</strong></button>
+        <button type="button" data-building="74"><span>Bldg</span><strong>74</strong></button>
+      </div>
+    </section>
   </div>
 </body>
 

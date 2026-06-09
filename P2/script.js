@@ -1,24 +1,30 @@
-const STORAGE_KEY = "bldg-50-posters";
+const BUILDINGS = ["50", "49", "74"];
 const LEGACY_STORAGE_KEY = "bldg-500-posters";
 const MAX_ELEMENTS = 18;
 const TITLE_ID = "poster-title";
+const VIEW_TRANSITION_MS = 360;
 const DAY_MS = 24 * 60 * 60 * 1000;
 const POSTER_LIFETIME_DAYS = 14;
 const AGED_DEMO_DAYS = 5;
+const WALL_RANDOM_X_MIN = 12;
+const WALL_RANDOM_X_MAX = 88;
+const WALL_RANDOM_Y_MIN = 34;
+const WALL_RANDOM_Y_MAX = 76;
+const POSTER_WIDTH_TO_HEIGHT = 520 / 734;
 
 const wallSlots = [
-  { x: 10, y: 17, r: -2.2 },
-  { x: 27, y: 22, r: 1.4 },
-  { x: 45, y: 18, r: -0.9 },
-  { x: 63, y: 23, r: 2.1 },
-  { x: 82, y: 18, r: -1.5 },
-  { x: 18, y: 56, r: 1.7 },
-  { x: 37, y: 61, r: -2.6 },
-  { x: 56, y: 55, r: 0.8 },
-  { x: 75, y: 62, r: -1.8 },
-  { x: 90, y: 52, r: 2.4 },
-  { x: 31, y: 39, r: 2.7 },
-  { x: 69, y: 41, r: -2.3 },
+  { x: 10, y: 32 },
+  { x: 27, y: 36 },
+  { x: 45, y: 31 },
+  { x: 63, y: 37 },
+  { x: 82, y: 32 },
+  { x: 18, y: 64 },
+  { x: 37, y: 70 },
+  { x: 56, y: 63 },
+  { x: 75, y: 71 },
+  { x: 90, y: 61 },
+  { x: 31, y: 50 },
+  { x: 69, y: 51 },
 ];
 
 const defaultTitle = {
@@ -36,6 +42,7 @@ const defaultTitle = {
 };
 
 const state = {
+  building: "50",
   elementKind: "text",
   imageData: "",
   title: { ...defaultTitle },
@@ -43,6 +50,7 @@ const state = {
   posters: [],
   selectedElementId: TITLE_ID,
   drag: null,
+  viewTransition: null,
 };
 
 const page = document.querySelector(".page");
@@ -62,10 +70,24 @@ const toolPanel = document.querySelector(".tool-panel");
 const uploadModal = document.querySelector("#uploadModal");
 const posterLightbox = document.querySelector("#posterLightbox");
 const lightboxImage = document.querySelector("#lightboxImage");
+const brandTitle = document.querySelector(".brand-title");
+const siteHeader = document.querySelector(".site-header");
+const buildingOverlay = document.querySelector("#buildingOverlay");
+
+function getBuildingFromUrl() {
+  const building = new URLSearchParams(window.location.search).get("bldg");
+  return BUILDINGS.includes(building) ? building : "50";
+}
+
+function getStorageKey(building = state.building) {
+  return `bldg-${building}-posters`;
+}
 
 function loadPosters() {
   try {
-    const storedPosters = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);
+    const currentKey = getStorageKey();
+    const legacyPosters = state.building === "50" ? localStorage.getItem(LEGACY_STORAGE_KEY) : null;
+    const storedPosters = localStorage.getItem(currentKey) || legacyPosters;
     state.posters = JSON.parse(storedPosters) || [];
     state.posters = state.posters.filter((poster) => getPosterAgeDays(poster.createdAt) < POSTER_LIFETIME_DAYS);
   } catch {
@@ -74,7 +96,7 @@ function loadPosters() {
 }
 
 function savePosters() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state.posters));
+  localStorage.setItem(getStorageKey(), JSON.stringify(state.posters));
 }
 
 function createId() {
@@ -87,22 +109,6 @@ function createId() {
 
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
-}
-
-function getOrdinalSuffix(day) {
-  if (day > 10 && day < 14) return "th";
-  const lastDigit = day % 10;
-  if (lastDigit === 1) return "st";
-  if (lastDigit === 2) return "nd";
-  if (lastDigit === 3) return "rd";
-  return "th";
-}
-
-function formatDate(dateValue) {
-  const date = new Date(dateValue);
-  const month = date.toLocaleString("en-US", { month: "long" });
-  const day = date.getDate();
-  return `${month} ${day}${getOrdinalSuffix(day)}`;
 }
 
 function getPosterAgeDays(dateValue) {
@@ -124,14 +130,27 @@ function getWallSlot(index) {
   return {
     x: clamp(slot.x + xOffset, 7, 93),
     y: clamp(slot.y + yOffset, 13, 87),
-    r: slot.r + ((layer % 4) - 1.5) * 0.7,
+    r: 0,
   };
+}
+
+function getRandomWallPlacement() {
+  return {
+    x: Number((WALL_RANDOM_X_MIN + Math.random() * (WALL_RANDOM_X_MAX - WALL_RANDOM_X_MIN)).toFixed(2)),
+    y: Number((WALL_RANDOM_Y_MIN + Math.random() * (WALL_RANDOM_Y_MAX - WALL_RANDOM_Y_MIN)).toFixed(2)),
+    r: 0,
+  };
+}
+
+function getPosterWallPlacement(poster, index) {
+  const placement = poster.wall || getWallSlot(index);
+  return { ...placement, r: 0 };
 }
 
 function getAgedDemoPoster() {
   const createdAt = new Date(Date.now() - AGED_DEMO_DAYS * DAY_MS);
   return {
-    id: "aged-demo-poster",
+    id: `aged-demo-poster-${state.building}`,
     title: "Aged sample poster",
     createdAt: createdAt.toISOString(),
     image: buildAgedDemoSvg(),
@@ -160,7 +179,7 @@ function buildAgedDemoSvg() {
       <rect width="520" height="734" fill="#eee9df"/>
       <path d="M31 25 L109 16 L184 27 L264 18 L353 31 L472 17 L500 52 L489 248 L503 372 L487 689 L386 704 L303 691 L222 715 L126 694 L34 710 L18 587 L33 451 L19 309 Z" fill="#f6f2e8" filter="url(#paperNoise)"/>
       <path d="M34 104 C82 79 135 130 185 93 C242 51 279 139 336 92 C390 48 445 105 492 83" fill="none" stroke="#111" stroke-width="8" opacity="0.68"/>
-      <text x="56" y="223" font-family="Inter, Arial, sans-serif" font-size="44" font-weight="780" fill="#111">Bldg 50</text>
+      <text x="56" y="223" font-family="Inter, Arial, sans-serif" font-size="44" font-weight="780" fill="#111">Bldg ${state.building}</text>
       <text x="56" y="283" font-family="Inter, Arial, sans-serif" font-size="30" font-weight="520" fill="#111">weathered notice</text>
       <text x="56" y="340" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="520" fill="#555">${AGED_DEMO_DAYS} days on the wall</text>
       <path d="M58 507 L466 482" stroke="#111" stroke-width="3" opacity="0.42"/>
@@ -179,12 +198,90 @@ function escapeXml(value) {
     .replaceAll('"', "&quot;");
 }
 
+function updateBuildingIdentity() {
+  const label = `Bldg ${state.building}`;
+  document.title = label;
+  brandTitle.textContent = label;
+  siteHeader.setAttribute("aria-label", `${label} poster board`);
+  document.querySelectorAll("[data-building]").forEach((button) => {
+    const isCurrent = button.dataset.building === state.building;
+    button.classList.toggle("is-current", isCurrent);
+    button.setAttribute("aria-current", isCurrent ? "page" : "false");
+  });
+}
+
 function setView(viewName) {
+  const currentView = page.dataset.view;
+  if (currentView === viewName || state.viewTransition) return;
+
+  const outgoing = currentView === "editor" ? editorView : boardView;
+  const incoming = viewName === "editor" ? editorView : boardView;
+  state.viewTransition = window.setTimeout(() => {
+    outgoing.hidden = true;
+    outgoing.classList.remove("is-leaving");
+    state.viewTransition = null;
+  }, VIEW_TRANSITION_MS);
+
+  outgoing.classList.add("is-leaving");
+  incoming.hidden = false;
+  incoming.classList.add("is-entering");
   page.dataset.view = viewName;
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => incoming.classList.remove("is-entering"));
+  });
+
   const isEditor = viewName === "editor";
-  boardView.hidden = isEditor;
-  editorView.hidden = !isEditor;
   if (isEditor) selectElement(state.selectedElementId || TITLE_ID);
+}
+
+function openBuildingMenu() {
+  updateBuildingIdentity();
+  buildingOverlay.hidden = false;
+  document.body.classList.add("is-modal-open");
+  requestAnimationFrame(() => buildingOverlay.classList.add("is-open"));
+}
+
+function closeBuildingMenu() {
+  if (buildingOverlay.hidden) return;
+  buildingOverlay.classList.remove("is-open");
+  window.setTimeout(() => {
+    buildingOverlay.hidden = true;
+    document.body.classList.remove("is-modal-open");
+  }, 240);
+}
+
+function switchBuilding(building, updateHistory = true) {
+  if (!BUILDINGS.includes(building) || building === state.building) {
+    closeBuildingMenu();
+    return;
+  }
+
+  closeBuildingMenu();
+  const activeView = page.dataset.view === "editor" ? editorView : boardView;
+  activeView.classList.add("is-leaving");
+
+  window.setTimeout(() => {
+    state.building = building;
+    if (updateHistory) {
+      const url = new URL(window.location.href);
+      url.searchParams.set("bldg", building);
+      window.history.pushState({ building }, "", url);
+    }
+    loadPosters();
+    renderBoard();
+    resetEditor();
+    updateBuildingIdentity();
+
+    boardView.hidden = false;
+    editorView.hidden = true;
+    page.dataset.view = "board";
+    activeView.classList.remove("is-leaving");
+    boardView.classList.add("is-entering");
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => boardView.classList.remove("is-entering"));
+    });
+  }, VIEW_TRANSITION_MS);
 }
 
 function renderBoard() {
@@ -193,13 +290,14 @@ function renderBoard() {
   getBoardPosters().forEach((poster, index) => {
     const ageDays = getPosterAgeDays(poster.createdAt);
     const ageClass = getPosterAgeClass(ageDays);
-    const slot = getWallSlot(index);
+    const slot = getPosterWallPlacement(poster, index);
     const card = document.createElement("figure");
     card.className = `poster-card ${ageClass}`.trim();
     card.style.setProperty("--wall-x", slot.x);
     card.style.setProperty("--wall-y", slot.y);
     card.style.setProperty("--wall-r", `${slot.r}deg`);
     card.style.setProperty("--wall-z", String(1000 - index));
+    card.style.setProperty("--arrival-index", String(Math.min(index, 12)));
 
     const button = document.createElement("button");
     button.type = "button";
@@ -211,11 +309,8 @@ function renderBoard() {
     img.src = poster.image;
     img.alt = poster.title || "Uploaded poster";
 
-    const caption = document.createElement("figcaption");
-    caption.textContent = formatDate(poster.createdAt);
-
     button.append(img);
-    card.append(button, caption);
+    card.append(button);
     postersGrid.append(card);
   });
 }
@@ -245,7 +340,7 @@ function syncControls(item) {
   updateToolSelection(mode);
   elementText.value = item?.text || (mode === "text" ? "Poster note" : "");
   elementColor.value = item?.color || "#1649ff";
-  elementSize.value = String(Math.round(item?.w || 34));
+  elementSize.value = String(Math.round(item?.kind === "shape" ? (item.size || item.w) : (item?.w || 34)));
   fontSize.value = String(Math.round(item?.fontSize || 34));
   shapeType.value = item?.shape || "circle";
   const itemIndex = state.elements.findIndex((element) => element.id === item?.id);
@@ -278,9 +373,23 @@ function getNextPosition() {
   };
 }
 
+function getShapeDimensions(shape, size) {
+  if (shape === "capsule") {
+    return {
+      w: clamp(size * 1.55, 18, 100),
+      h: Math.max(7, size * 0.55 * POSTER_WIDTH_TO_HEIGHT),
+    };
+  }
+  if (shape === "arch") {
+    return { w: size, h: clamp(size * 1.22 * POSTER_WIDTH_TO_HEIGHT, 12, 100) };
+  }
+  return { w: size, h: size * POSTER_WIDTH_TO_HEIGHT };
+}
+
 function createElementNode(item) {
   const node = document.createElement("div");
   node.className = `poster-item is-${item.kind}`;
+  if (item.kind === "shape") node.classList.add(`shape-${item.shape}`);
   node.classList.toggle("is-selected", item.id === state.selectedElementId);
   node.dataset.elementId = item.id;
   node.style.setProperty("--item-color", item.color);
@@ -289,8 +398,6 @@ function createElementNode(item) {
   node.style.setProperty("--w", item.w);
   node.style.setProperty("--h", item.h);
   node.style.setProperty("--font-size", item.fontSize || 34);
-  node.style.setProperty("--shape-rotation", item.shape === "diamond" ? "45deg" : "0deg");
-  node.style.setProperty("--shape-radius", item.shape === "circle" ? "999px" : "0");
 
   if (item.kind === "image" && item.image) {
     const img = document.createElement("img");
@@ -316,6 +423,8 @@ function addElement() {
   const position = getNextPosition();
   const size = Number(elementSize.value);
   const kind = state.elementKind;
+  const shape = kind === "shape" ? shapeType.value : "square";
+  const shapeDimensions = getShapeDimensions(shape, size);
   const element = {
     id: createId(),
     kind,
@@ -324,10 +433,11 @@ function addElement() {
     image: kind === "image" ? state.imageData : "",
     x: position.x,
     y: position.y,
-    w: kind === "shape" && shapeType.value === "bar" ? clamp(size * 1.5, 18, 100) : size,
-    h: kind === "text" ? Math.max(12, size * 0.4) : kind === "shape" && shapeType.value === "bar" ? Math.max(10, size * 0.24) : size,
+    w: kind === "shape" ? shapeDimensions.w : size,
+    h: kind === "text" ? Math.max(12, size * 0.4) : kind === "shape" ? shapeDimensions.h : size,
     fontSize: kind === "text" ? clamp(size * 0.95, 16, 110) : Number(fontSize.value),
-    shape: kind === "shape" ? shapeType.value : "rect",
+    shape,
+    size,
   };
 
   if (kind === "image" && !state.imageData) {
@@ -415,11 +525,48 @@ function renderSvgElement(item, area) {
   }
 
   if (item.kind === "shape") {
+    const right = x + itemWidth;
+    const bottom = y + itemHeight;
+    const centerX = x + itemWidth / 2;
+    const centerY = y + itemHeight / 2;
+
     if (item.shape === "circle") {
-      return `<ellipse cx="${x + itemWidth / 2}" cy="${y + itemHeight / 2}" rx="${itemWidth / 2}" ry="${itemHeight / 2}" fill="${color}"/>`;
+      const radius = Math.min(itemWidth, itemHeight) / 2;
+      return `<circle cx="${centerX}" cy="${centerY}" r="${radius}" fill="${color}"/>`;
+    }
+    if (item.shape === "triangle") {
+      return `<polygon points="${centerX},${y} ${right},${bottom} ${x},${bottom}" fill="${color}"/>`;
+    }
+    if (item.shape === "star") {
+      const points = [
+        [50, 0], [61, 35], [98, 35], [68, 57], [79, 94],
+        [50, 72], [21, 94], [32, 57], [2, 35], [39, 35],
+      ].map(([px, py]) => `${x + itemWidth * px / 100},${y + itemHeight * py / 100}`).join(" ");
+      return `<polygon points="${points}" fill="${color}"/>`;
+    }
+    if (item.shape === "hexagon") {
+      return `<polygon points="${x + itemWidth * 0.25},${y} ${x + itemWidth * 0.75},${y} ${right},${centerY} ${x + itemWidth * 0.75},${bottom} ${x + itemWidth * 0.25},${bottom} ${x},${centerY}" fill="${color}"/>`;
     }
     if (item.shape === "diamond") {
-      return `<rect x="${x}" y="${y}" width="${itemWidth}" height="${itemHeight}" fill="${color}" transform="rotate(45 ${x + itemWidth / 2} ${y + itemHeight / 2})"/>`;
+      return `<polygon points="${centerX},${y} ${right},${centerY} ${centerX},${bottom} ${x},${centerY}" fill="${color}"/>`;
+    }
+    if (item.shape === "cross") {
+      const points = [
+        [35, 0], [65, 0], [65, 35], [100, 35], [100, 65], [65, 65],
+        [65, 100], [35, 100], [35, 65], [0, 65], [0, 35], [35, 35],
+      ].map(([px, py]) => `${x + itemWidth * px / 100},${y + itemHeight * py / 100}`).join(" ");
+      return `<polygon points="${points}" fill="${color}"/>`;
+    }
+    if (item.shape === "ring") {
+      const radius = Math.min(itemWidth, itemHeight) * 0.4;
+      const strokeWidth = Math.max(6, Math.min(itemWidth, itemHeight) * 0.15);
+      return `<circle cx="${centerX}" cy="${centerY}" r="${radius}" fill="none" stroke="${color}" stroke-width="${strokeWidth}"/>`;
+    }
+    if (item.shape === "capsule") {
+      return `<rect x="${x}" y="${y}" width="${itemWidth}" height="${itemHeight}" rx="${itemHeight / 2}" fill="${color}"/>`;
+    }
+    if (item.shape === "arch") {
+      return `<path d="M ${x} ${bottom} L ${x} ${centerY} A ${itemWidth / 2} ${itemHeight / 2} 0 0 1 ${right} ${centerY} L ${right} ${bottom} Z" fill="${color}"/>`;
     }
     return `<rect x="${x}" y="${y}" width="${itemWidth}" height="${itemHeight}" fill="${color}"/>`;
   }
@@ -467,6 +614,7 @@ function uploadPoster() {
     title: state.title.text || "Title",
     createdAt: new Date().toISOString(),
     image: buildPosterSvg(),
+    wall: getRandomWallPlacement(),
   };
 
   state.posters.unshift(poster);
@@ -533,8 +681,9 @@ function updateSelectedSize(size) {
     next.h = Math.max(10, size * 0.38);
     next.fontSize = clamp(selected.kind === "title" ? size * 1.1 : size * 0.95, 16, 110);
     fontSize.value = String(Math.round(next.fontSize));
-  } else if (selected.kind === "shape" && selected.shape === "bar") {
-    next.h = Math.max(8, size * 0.24);
+  } else if (selected.kind === "shape") {
+    next.size = size;
+    Object.assign(next, getShapeDimensions(selected.shape, size));
   } else {
     next.h = size;
   }
@@ -543,6 +692,12 @@ function updateSelectedSize(size) {
 }
 
 document.addEventListener("click", (event) => {
+  const buildingTarget = event.target.closest("[data-building]");
+  if (buildingTarget) {
+    switchBuilding(buildingTarget.dataset.building);
+    return;
+  }
+
   const actionTarget = event.target.closest("[data-action]");
   if (!actionTarget) return;
 
@@ -550,6 +705,14 @@ document.addEventListener("click", (event) => {
 
   if (action === "show-editor") {
     setView("editor");
+  }
+
+  if (action === "open-building-menu") {
+    openBuildingMenu();
+  }
+
+  if (action === "close-building-menu") {
+    closeBuildingMenu();
   }
 
   if (action === "show-board") {
@@ -605,12 +768,7 @@ shapeType.addEventListener("change", () => {
   const selected = getSelectedElement();
   if (!selected || selected.kind !== "shape") return;
   selected.shape = shapeType.value;
-  if (selected.shape === "bar") {
-    selected.h = Math.max(8, selected.w * 0.24);
-  }
-  if (selected.shape !== "bar") {
-    selected.h = selected.w;
-  }
+  Object.assign(selected, getShapeDimensions(selected.shape, selected.size || Number(elementSize.value)));
   renderEditorElements();
   syncControls(selected);
 });
@@ -659,6 +817,9 @@ uploadModal.addEventListener("click", (event) => {
 });
 
 posterLightbox.addEventListener("click", closeLightbox);
+buildingOverlay.addEventListener("click", (event) => {
+  if (event.target === buildingOverlay) closeBuildingMenu();
+});
 
 document.addEventListener("keydown", (event) => {
   if (event.key === "Backspace" && page.dataset.view === "editor" && document.activeElement === document.body) {
@@ -667,8 +828,21 @@ document.addEventListener("keydown", (event) => {
   if (event.key !== "Escape") return;
   closeUploadModal();
   closeLightbox();
+  closeBuildingMenu();
 });
 
+window.addEventListener("popstate", () => {
+  const building = getBuildingFromUrl();
+  if (building !== state.building) switchBuilding(building, false);
+});
+
+state.building = getBuildingFromUrl();
+if (!new URLSearchParams(window.location.search).has("bldg")) {
+  const url = new URL(window.location.href);
+  url.searchParams.set("bldg", state.building);
+  window.history.replaceState({ building: state.building }, "", url);
+}
 loadPosters();
 renderBoard();
 resetEditor();
+updateBuildingIdentity();
