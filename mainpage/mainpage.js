@@ -5,6 +5,7 @@
   const stage = document.querySelector("#content-stage");
   const buttons = Array.from(document.querySelectorAll("[data-panel]"));
   const dashLines = Array.from(document.querySelectorAll(".dash-line"));
+  const dashFillers = new Set();
 
   const panels = {
     about: {
@@ -33,7 +34,7 @@
     p1: {
       type: "project",
       className: "p1-panel",
-      title: "---------- TP-Neo ----------",
+      label: "TP-Neo",
       href: FIGMA_P1,
       image: "mainpage/P1-Reel.png",
       imageClass: "reel-art",
@@ -42,7 +43,7 @@
     p2: {
       type: "project",
       className: "p2-panel",
-      title: "---------- Bldg ----------",
+      label: "Bldg __",
       href: P2_LINK,
       image: "mainpage/P2-Poster.png",
       imageClass: "poster-art",
@@ -56,6 +57,29 @@
     dashLines.forEach((line) => {
       line.textContent = dashes;
     });
+  }
+
+  function fitDashes(element, label) {
+    if (!element) return;
+
+    const suffix = label ? ` ${label} ` : "";
+    let previous = "-";
+
+    for (let count = 2; count < 160; count += 1) {
+      const dashes = "-".repeat(count);
+      element.textContent = label ? `${dashes}${suffix}${dashes}` : dashes;
+
+      if (element.scrollWidth > element.clientWidth) {
+        element.textContent = label ? `${previous}${suffix}${previous}` : previous;
+        return;
+      }
+
+      previous = dashes;
+    }
+  }
+
+  function refreshDashFillers() {
+    dashFillers.forEach(({ element, label }) => fitDashes(element, label));
   }
 
   function setActive(panelName) {
@@ -93,7 +117,7 @@
 
     const title = document.createElement("div");
     title.className = "drawer-title";
-    title.textContent = panel.title;
+    title.dataset.label = panel.label;
 
     const body = document.createElement("div");
     body.className = "drawer-body";
@@ -109,7 +133,6 @@
 
     const footer = document.createElement("div");
     footer.className = "drawer-footer";
-    footer.textContent = "------------------------------";
 
     link.appendChild(image);
     body.appendChild(link);
@@ -117,9 +140,13 @@
     slots.appendChild(drawer);
     wrapper.appendChild(slots);
     stage.appendChild(wrapper);
+    dashFillers.clear();
+    dashFillers.add({ element: title, label: panel.label });
+    dashFillers.add({ element: footer, label: "" });
 
     requestAnimationFrame(() => {
       drawer.classList.add("is-open");
+      refreshDashFillers();
     });
   }
 
@@ -148,5 +175,8 @@
   });
 
   refreshDashLines();
-  window.addEventListener("resize", refreshDashLines);
+  window.addEventListener("resize", () => {
+    refreshDashLines();
+    refreshDashFillers();
+  });
 })();

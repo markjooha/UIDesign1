@@ -14,9 +14,10 @@
   --gap: clamp(18px, 3vw, 40px);
   --border: 3px solid var(--white);
   --active-border: 4px solid var(--green);
-  --left-column: minmax(240px, 28.8vw);
-  --text-size: clamp(20px, 1.68vw, 32px);
-  --button-size: clamp(21px, 1.72vw, 34px);
+  --left-column-size: max(210px, 23vw);
+  --left-column: var(--left-column-size);
+  --text-size: clamp(18px, 1.36vw, 27px);
+  --button-size: clamp(18px, 1.34vw, 27px);
 }
 
 * {
@@ -71,18 +72,18 @@ a {
   z-index: 10;
   top: 0;
   left: 0;
-  padding: clamp(24px, 3.1vw, 36px) var(--page-margin) 8px;
+  padding: clamp(12px, 1.8vw, 22px) var(--page-margin) 4px;
 }
 
 .dash-line-bottom {
   margin-top: auto;
-  padding: 10px var(--page-margin) clamp(18px, 2.4vw, 28px);
+  padding: 6px var(--page-margin) clamp(12px, 1.8vw, 22px);
 }
 
 .main-shell {
   width: 100%;
   flex: 1;
-  padding: clamp(86px, 7vw, 118px) var(--page-margin) 16px;
+  padding: clamp(54px, 4.4vw, 74px) var(--page-margin) 8px;
 }
 
 .intro-grid {
@@ -106,21 +107,21 @@ a {
 
 .dialog-box {
   position: relative;
-  min-height: clamp(172px, 15.8vw, 300px);
+  min-height: clamp(142px, 12.8vw, 236px);
   border: var(--border);
-  padding: clamp(46px, 4.4vw, 72px) clamp(22px, 3vw, 46px) clamp(22px, 2.6vw, 36px);
+  padding: clamp(24px, 2.25vw, 36px) clamp(18px, 2.5vw, 38px) clamp(18px, 2vw, 28px);
 }
 
 .name-plate {
   position: absolute;
-  top: clamp(-48px, -3.4vw, -34px);
+  top: clamp(-30px, -2vw, -22px);
   left: clamp(20px, 2.5vw, 40px);
   margin: 0;
   padding: 0.24em 0.68em 0.28em;
   border: var(--border);
   background: var(--black);
   color: var(--white);
-  font-size: clamp(28px, 2.38vw, 46px);
+  font-size: clamp(24px, 1.95vw, 38px);
   line-height: 1;
   font-weight: 400;
   white-space: nowrap;
@@ -128,7 +129,7 @@ a {
 
 .dialog-box p {
   margin: 0;
-  max-width: 44ch;
+  max-width: 64ch;
   color: var(--white);
   font-size: var(--text-size);
   line-height: 1.28;
@@ -139,7 +140,7 @@ a {
   grid-template-columns: var(--left-column) minmax(0, 1fr);
   gap: var(--gap);
   align-items: start;
-  margin-top: clamp(20px, 2.7vw, 34px);
+  margin-top: clamp(10px, 1.5vw, 20px);
 }
 
 .button-pair {
@@ -157,12 +158,13 @@ a {
 
 .terminal-button {
   width: 100%;
-  min-height: clamp(56px, 5.7vw, 80px);
+  height: clamp(34px, 3.35vw, 46px);
+  min-height: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   border: var(--border);
-  padding: 0.18em 0.5em 0.24em;
+  padding: 0.08em 0.5em 0;
   overflow: hidden;
   background: var(--black);
   color: var(--white);
@@ -192,11 +194,11 @@ a {
 }
 
 .terminal-list {
-  margin: clamp(20px, 3vw, 34px) 0 0;
+  margin: clamp(14px, 2vw, 24px) 0 0;
   padding: 0;
   list-style: none;
-  font-size: clamp(20px, 1.52vw, 30px);
-  line-height: 1.34;
+  font-size: clamp(18px, 1.25vw, 25px);
+  line-height: 1.25;
 }
 
 .terminal-list.about-list {
@@ -205,9 +207,9 @@ a {
 
 .terminal-list.exercise-list {
   width: min(100%, 760px);
-  margin-left: calc((100% - min(100%, 760px)) * 0.38);
+  margin-left: calc((var(--left-column-size) + var(--gap)) / 2);
   color: var(--green);
-  font-size: clamp(18px, 1.35vw, 27px);
+  font-size: clamp(16px, 1.12vw, 23px);
 }
 
 .terminal-line {
@@ -248,14 +250,15 @@ a {
 .drawer {
   max-height: 0;
   overflow: hidden;
+  container-type: inline-size;
   border-left: 3px solid var(--green);
   border-right: 3px solid var(--green);
-  transform: translateY(-22px);
+  transform: translateY(-16px);
   transition: max-height 720ms steps(9, end), transform 720ms steps(9, end);
 }
 
 .drawer.is-open {
-  max-height: 300px;
+  max-height: clamp(230px, 23vw, 310px);
   transform: translateY(0);
 }
 
@@ -269,11 +272,14 @@ a {
 
 .drawer-title,
 .drawer-footer {
-  border: 3px solid var(--green);
+  border-top: 3px solid var(--green);
+  border-bottom: 3px solid var(--green);
+  border-left: 0;
+  border-right: 0;
   background: var(--black);
   color: var(--green);
-  font-size: clamp(18px, 1.25vw, 24px);
-  line-height: 1;
+  font-size: clamp(16px, 1vw, 20px);
+  line-height: 1.12;
   text-align: center;
   white-space: nowrap;
 }
@@ -281,15 +287,15 @@ a {
 .drawer-title,
 .drawer-footer {
   width: 100%;
-  padding: 0.34em 0.5em 0.42em;
+  padding: 0.28em 0.5em 0.5em;
 }
 
 .drawer-body {
   display: grid;
-  height: clamp(156px, 15vw, 200px);
+  height: clamp(126px, 13.5vw, 190px);
   min-height: 0;
   place-items: center;
-  padding: clamp(14px, 2vw, 24px);
+  padding: clamp(12px, 1.8vw, 22px);
 }
 
 .drawer-body a {
@@ -300,14 +306,16 @@ a {
 .reel-art {
   display: block;
   width: auto;
-  height: clamp(110px, 7.5vw, 150px);
+  max-width: 86%;
+  height: clamp(130px, 24cqw, 165px);
   animation: poster-hop 1s step-end infinite;
 }
 
 .poster-art {
   display: block;
   width: auto;
-  height: clamp(110px, 7.5vw, 150px);
+  max-width: 80%;
+  height: clamp(120px, 25cqw, 165px);
   animation: poster-hop 1s step-end infinite;
 }
 
@@ -403,6 +411,7 @@ a {
   }
 
   .main-shell {
+    width: 100%;
     padding-top: 96px;
   }
 
